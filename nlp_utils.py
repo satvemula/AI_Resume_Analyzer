@@ -5,11 +5,12 @@ import re
 
 # Load spaCy model
 try:
-    # This load must succeed because the postBuild script runs the download command.
+    # This load must succeed because the postBuild script or external configuration
+    # is assumed to handle the model download prior to the app running.
     nlp = spacy.load("en_core_web_sm")
 except OSError:
-    # If this fails, the deployment is completely broken, but the error message is now correct.
-    print("FATAL: spaCy English model not found after attempted deployment installation.")
+    # If this fails, it indicates the model installation failed outside of Python code execution.
+    print("FATAL: spaCy English model 'en_core_web_sm' not found. Check deployment logs for installation failure.")
     raise
 
 def extract_skills_nlp(text):
