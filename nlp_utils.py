@@ -5,7 +5,7 @@ import re
 # Remove subprocess and sys imports
 
 # Load spaCy model immediately
-nlp = spacy.load("en_core_web_sm") 
+nlp = spacy.load("en_core_web_sm")
 # ... (rest of your functions) ...
 
 
