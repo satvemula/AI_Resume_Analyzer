@@ -2,32 +2,11 @@ import spacy
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import re
-import subprocess
-import sys
+# Remove subprocess and sys imports
 
-# Load spaCy model with robust fallback mechanism
-model_name = "en_core_web_sm"
-
-try:
-    # 1. Attempt to load the model directly
-    nlp = spacy.load(model_name)
-except OSError:
-    print(f"spaCy model '{model_name}' not found. Attempting shell download...")
-    
-    # 2. If load fails, attempt to download using the shell command (ULTIMATE FALLBACK)
-    try:
-        # Use sys.executable to ensure the command uses the correct Python interpreter
-        # This is the MOST robust way to run a command inside a virtual environment.
-        subprocess.check_call([sys.executable, "-m", "spacy", "download", model_name])
-        
-        # 3. Try loading the model again after installation
-        nlp = spacy.load(model_name)
-        print(f"Successfully installed and loaded {model_name} via shell command.")
-    
-    except Exception as e:
-        print(f"FATAL ERROR: Could not install or load the model. Details: {e}")
-        # If this still fails, we raise the error to stop the application gracefully
-        raise
+# Load spaCy model immediately
+nlp = spacy.load("en_core_web_sm") 
+# ... (rest of your functions) ...
 
 
 def extract_skills_nlp(text):
