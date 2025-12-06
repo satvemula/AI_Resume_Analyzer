@@ -1,0 +1,8 @@
+# .streamlit/config.toml
+
+[runner]
+magicEnabled = false
+
+[server]
+# Command to run the spaCy model download before the app starts
+pre-script = "python -m spacy download en_core_web_sm"
