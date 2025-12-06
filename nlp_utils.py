@@ -2,16 +2,33 @@ import spacy
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import re
+import subprocess
+import sys
 
-# Load spaCy model
+# Load spaCy model with robust fallback mechanism
+model_name = "en_core_web_sm"
+
 try:
-    # This load must succeed because the postBuild script or external configuration
-    # is assumed to handle the model download prior to the app running.
-    nlp = spacy.load("en_core_web_sm")
+    # 1. Attempt to load the model directly
+    nlp = spacy.load(model_name)
 except OSError:
-    # If this fails, it indicates the model installation failed outside of Python code execution.
-    print("FATAL: spaCy English model 'en_core_web_sm' not found. Check deployment logs for installation failure.")
-    raise
+    print(f"spaCy model '{model_name}' not found. Attempting shell download...")
+    
+    # 2. If load fails, attempt to download using the shell command (ULTIMATE FALLBACK)
+    try:
+        # Use sys.executable to ensure the command uses the correct Python interpreter
+        # This is the MOST robust way to run a command inside a virtual environment.
+        subprocess.check_call([sys.executable, "-m", "spacy", "download", model_name])
+        
+        # 3. Try loading the model again after installation
+        nlp = spacy.load(model_name)
+        print(f"Successfully installed and loaded {model_name} via shell command.")
+    
+    except Exception as e:
+        print(f"FATAL ERROR: Could not install or load the model. Details: {e}")
+        # If this still fails, we raise the error to stop the application gracefully
+        raise
+
 
 def extract_skills_nlp(text):
     """
@@ -97,6 +114,7 @@ def calculate_fit_score(resume_text, job_desc_text):
             return calculate_keyword_similarity(resume_text, job_desc_text)
         
         # Calculate cosine similarity
+        # Cosine similarity formula: $\frac{A \cdot B}{\|A\| \|B\|}$
         similarity = cosine_similarity([resume_vector], [job_vector])[0][0]
         
         # Convert to percentage and ensure it's reasonable
