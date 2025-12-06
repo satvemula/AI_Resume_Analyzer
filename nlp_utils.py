@@ -3,13 +3,32 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import re
 
-# Load spaCy model
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    print("spaCy English model not found. Run: python -m spacy download en_core_web_sm")
-    raise
+# --- MODIFIED: Ensure model is downloaded and loaded ---
+model_name = "en_core_web_sm"
 
+try:
+    nlp = spacy.load(model_name)
+except OSError:
+    print(f"spaCy model '{model_name}' not found. Attempting download...")
+    
+    # 1. Download the model programmatically
+    try:
+        spacy.cli.download(model_name)
+    except Exception as e:
+        # Fallback for systems that need a specific target
+        import subprocess
+        subprocess.run(["python", "-m", "spacy", "download", model_name])
+
+    # 2. Load the model now that it's downloaded
+    try:
+        nlp = spacy.load(model_name)
+        print(f"Successfully downloaded and loaded {model_name}.")
+    except Exception as e:
+        print(f"FATAL ERROR: Could not load the model even after attempting download: {e}")
+        raise-
+
+def extract_skills_nlp(text):
+# ... (rest of nlp_utils.py) ...
 def extract_skills_nlp(text):
     """
     Extract skills from text using NLP techniques.
