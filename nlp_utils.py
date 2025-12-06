@@ -3,32 +3,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import re
 
-# --- MODIFIED: Ensure model is downloaded and loaded ---
-model_name = "en_core_web_sm"
-
+# Load spaCy model
 try:
-    nlp = spacy.load(model_name)
+    # This load must succeed because the postBuild script runs the download command.
+    nlp = spacy.load("en_core_web_sm")
 except OSError:
-    print(f"spaCy model '{model_name}' not found. Attempting download...")
-    
-    # 1. Download the model programmatically
-    try:
-        spacy.cli.download(model_name)
-    except Exception as e:
-        # Fallback for systems that need a specific target
-        import subprocess
-        # Note: subprocess.run is safer than os.system for running external commands
-        subprocess.run(["python", "-m", "spacy", "download", model_name])
-
-    # 2. Load the model now that it's downloaded
-    try:
-        nlp = spacy.load(model_name)
-        print(f"Successfully downloaded and loaded {model_name}.")
-    except Exception as e:
-        print(f"FATAL ERROR: Could not load the model even after attempting download: {e}")
-        # The 'raise' statement here is important to stop execution if the model still fails to load
-        raise
-
+    # If this fails, the deployment is completely broken, but the error message is now correct.
+    print("FATAL: spaCy English model not found after attempted deployment installation.")
+    raise
 
 def extract_skills_nlp(text):
     """
@@ -130,4 +112,22 @@ def calculate_keyword_similarity(resume_text, job_desc_text):
     """
     Fallback method to calculate similarity based on keyword overlap.
     """
-    resume_skills =
+    resume_skills = set(extract_skills_nlp(resume_text))
+    job_skills = set(extract_skills_nlp(job_desc_text))
+    
+    if not job_skills:
+        return 0
+    
+    matched_skills = resume_skills & job_skills
+    similarity_ratio = len(matched_skills) / len(job_skills)
+    
+    return round(similarity_ratio * 100, 2)
+
+def clean_text(text):
+    """
+    Clean text for better processing.
+    """
+    # Remove extra whitespace and normalize
+    text = re.sub(r'\s+', ' ', text)
+    text = text.strip()
+    return text
